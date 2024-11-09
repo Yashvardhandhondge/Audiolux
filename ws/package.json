@@ -1,31 +1,38 @@
 {
-<<<<<<< HEAD
-  "name": "next-app",
-  "version": "0.1.0",
-  "private": true,
+  "name": "ws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.ts",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "preinstall": "npx only-allow npm",
+    "dev": "nodemon src/app.ts",
+    "start": "node dist/app.js",
+    "build": "npm run postinstall && npx tsc -b",
+    "postinstall": "npx prisma generate"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
-    "next": "15.0.3"
+    "@prisma/client": "5.19.1",
+    "axios": "^1.7.7",
+    "bullmq": "^5.12.14",
+    "cluster": "^0.7.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
+    "prisma": "^5.19.1",
+    "redis": "^4.7.0",
+    "ws": "^8.18.0",
+    "youtube-search-api": "^1.2.2"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "15.0.3"
-=======
-  "devDependencies": {
-    "typescript": "^5.6.3"
->>>>>>> bdd1f27 (first commit)
-  }
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/ws": "^8.5.12",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "packageManager": "npm@latest"
 }
