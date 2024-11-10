@@ -794,6 +794,52 @@ publishPlayNext(spaceId: string) {
           });
         }
 
+
+        async publishRepeatSong(spaceId: string) {
+          const space = this.spaces.get(spaceId);
+          if (!space) {
+              console.error(`Space with id ${spaceId} not found.`);
+              return;
+          }
+          const currentStream = await this.prisma.currentStream.findFirst({
+              where: {
+                  spaceId: spaceId,
+              },
+          });
+  
+          if (!currentStream) {
+              space.users.forEach((user) => {
+                  user.ws.forEach((ws) => {
+                      ws.send(
+                          JSON.stringify({
+                              type: "error",
+                              data: {
+                                  message: "No song is currently playing to repeat.",
+                              },
+                          })
+                      );
+                  });
+              });
+              return;
+          }
+          await this.queue.add("repeat-song", {
+              spaceId,
+              userId: space.creatorId, 
+          });
+          space.users.forEach((user) => {
+              user.ws.forEach((ws) => {
+                  ws.send(
+                      JSON.stringify({
+                          type: "repeat-song",
+                          data: {
+                              message: "The song is being repeated.",
+                          },
+                      })
+                  );
+              });
+          });
+      }
+  
         async adminRepeatSong(spaceId: string, userId: string) {
             const room = this.spaces.get(spaceId);
             const user = this.users.get(userId);
@@ -831,6 +877,31 @@ publishPlayNext(spaceId: string) {
             });
         }
         
+        
+        async publishSkipSong(spaceId: string) {
+          const space = this.spaces.get(spaceId);
+          if (!space) {
+              console.error(`Space with id ${spaceId} not found.`);
+              return;
+          }
+          space.users.forEach((user) => {
+              user.ws.forEach((ws) => {
+                  ws.send(
+                      JSON.stringify({
+                          type: "skip-song",
+                          data: {
+                              message: "The song is being skipped.",
+                          },
+                      })
+                  );
+              });
+          });
+          await this.queue.add("skip-song", {
+              spaceId,
+              userId: space.creatorId, 
+          });
+      }
+
         async adminSkipSong(spaceId: string, userId: string) {
             const room = this.spaces.get(spaceId);
             const user = this.users.get(userId);
@@ -852,74 +923,7 @@ publishPlayNext(spaceId: string) {
             });
         }
         
-        async publishRepeatSong(spaceId: string) {
-            const space = this.spaces.get(spaceId);
-            if (!space) {
-                console.error(`Space with id ${spaceId} not found.`);
-                return;
-            }
-            const currentStream = await this.prisma.currentStream.findFirst({
-                where: {
-                    spaceId: spaceId,
-                },
-            });
-    
-            if (!currentStream) {
-                space.users.forEach((user) => {
-                    user.ws.forEach((ws) => {
-                        ws.send(
-                            JSON.stringify({
-                                type: "error",
-                                data: {
-                                    message: "No song is currently playing to repeat.",
-                                },
-                            })
-                        );
-                    });
-                });
-                return;
-            }
-            await this.queue.add("repeat-song", {
-                spaceId,
-                userId: space.creatorId, 
-            });
-            space.users.forEach((user) => {
-                user.ws.forEach((ws) => {
-                    ws.send(
-                        JSON.stringify({
-                            type: "repeat-song",
-                            data: {
-                                message: "The song is being repeated.",
-                            },
-                        })
-                    );
-                });
-            });
-        }
-    
-        async publishSkipSong(spaceId: string) {
-            const space = this.spaces.get(spaceId);
-            if (!space) {
-                console.error(`Space with id ${spaceId} not found.`);
-                return;
-            }
-            space.users.forEach((user) => {
-                user.ws.forEach((ws) => {
-                    ws.send(
-                        JSON.stringify({
-                            type: "skip-song",
-                            data: {
-                                message: "The song is being skipped.",
-                            },
-                        })
-                    );
-                });
-            });
-            await this.queue.add("skip-song", {
-                spaceId,
-                userId: space.creatorId, 
-            });
-        }
+       
     
  disconnect(ws: WebSocket) {
 console.log(process.pid + "disconnect");

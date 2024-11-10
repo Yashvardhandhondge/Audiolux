@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "npx only-allow npm",  
+    "preinstall": "npx only-allow npm",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -36,7 +36,7 @@
     "jsonwebtoken": "^8.5.1",
     "lucide-react": "^0.436.0",
     "next": "14.2.7",
-    "next-auth": "^4.24.7",
+    "next-auth": "^4.24.10",
     "next-themes": "^0.3.0",
     "prisma": "^5.19.0",
     "react": "^18.3.1",

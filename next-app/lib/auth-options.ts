@@ -1,36 +1,26 @@
-import { NextAuthOptions, Session as NextAuthSession } from 'next-auth';
+import { NextAuthOptions, Session } from "next-auth";
 import bcrypt from 'bcryptjs';
-import { JWT } from 'next-auth/jwt'; // Correct import for JWT
-import Credentials from 'next-auth/providers/credentials';
-import GitHubProvider from 'next-auth/providers/github';
-import { emailSchema, passwordSchema } from '@/schema/credentials-schema';
-import { PrismaClientInitializationError } from '@prisma/client/runtime/library';
-import prisma from './db';
-
-// Define your custom Session interface
-interface Session extends NextAuthSession {
-  user: {
-    id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-}
+import { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GitHubProvider from "next-auth/providers/github";
+import { emailSchema, passwordSchema } from "@/schema/credentials-schema";
+import prisma from "./db";
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID ?? "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
+      clientId: process.env.GITHUB_ID ?? "",
+      clientSecret: process.env.GITHUB_SECRET ?? ""
     }),
-    Credentials({
+    CredentialsProvider({
       credentials: {
         email: { type: "email" },
         password: { type: "password" }
       },
       async authorize(credentials) {
         if (!credentials || !credentials.email || !credentials.password) {
-          return null;
+          throw new Error("Missing credentials");
         }
 
         const emailValidation = emailSchema.safeParse(credentials.email);
@@ -45,38 +35,29 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const user = await prisma.user.findUnique({
-            where: {
-              email: emailValidation.data
-            }
+            where: { email: emailValidation.data }
           });
 
           if (!user) {
             const hashedPassword = await bcrypt.hash(passwordValidation.data, 10);
-            const newUser = await prisma.user.create({
+            return await prisma.user.create({
               data: {
                 email: emailValidation.data,
                 password: hashedPassword,
                 provider: "Credentials"
               }
             });
-            return newUser;
           }
 
           if (!user.password) {
             const hashedPassword = await bcrypt.hash(passwordValidation.data, 10);
-            const authUser = await prisma.user.update({
-              where: {
-                email: emailValidation.data
-              },
-              data: {
-                password: hashedPassword
-              }
+            return await prisma.user.update({
+              where: { email: emailValidation.data },
+              data: { password: hashedPassword }
             });
-            return authUser;
           }
 
           const passwordVerification = await bcrypt.compare(passwordValidation.data, user.password);
-
           if (!passwordVerification) {
             throw new Error("Invalid password");
           }
@@ -86,74 +67,63 @@ export const authOptions: NextAuthOptions = {
           if (error instanceof PrismaClientInitializationError) {
             throw new Error("Internal server error");
           }
-          console.log(error);
+          console.error("Authorization error:", error);
           throw error;
         }
       }
     })
   ],
   pages: {
-    signIn: '/auth'
+    signIn: "/auth"
   },
-  secret: process.env.NEXTAUTH_SECRET ?? "secret",
+  secret: process.env.NEXTAUTH_SECRET ?? "",
   session: {
-    strategy: "jwt",
+    strategy: "jwt"
   },
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
         token.email = profile.email as string;
-        token.id = account.access_token;  // GitHub access token or credentials
+        token.id = account.access_token;
       }
       return token;
     },
-    async session({ session, token }: { session: Session, token: JWT}) {
+    async session({ session, token }) {
       try {
-        if (!session.user) {
-          session.user = {} as Session['user'];  // Initialize user if it's undefined
-        }
-
-        const dbUser = await prisma.user.findUnique({
-          where: {
-            email: token.email ?? undefined
-          }
+        const user = await prisma.user.findUnique({
+          where: { email: token.email ?? "" }
         });
-
-        if (dbUser && session.user) {
-          session.user.id = dbUser.id;  // Add user ID to session
+        if (user) {
+          session.user.id = user.id;
         }
-      } catch (error) {
-        if (error instanceof PrismaClientInitializationError) {
+      } catch (e) {
+        if (e instanceof PrismaClientInitializationError) {
           throw new Error("Internal server error");
         }
-        console.log(error);
-        throw error;
+        console.error("Session callback error:", e);
+        throw e;
       }
       return session;
     },
     async signIn({ account, profile }) {
       try {
-        if (account?.provider === "github") {
+        if (account?.provider === "github" && profile?.email) {
           const user = await prisma.user.findUnique({
-            where: {
-              email: profile?.email!,
-            }
+            where: { email: profile.email }
           });
-
           if (!user) {
-            // Create a new user from GitHub profile data
-            const newUser = await prisma.user.create({
+            await prisma.user.create({
               data: {
-                email: profile?.email!,
-                name: profile?.name  || undefined,  // Fallback to GitHub login name
-                provider: "Github"  // Make sure this matches Prisma model (case-sensitive)
+                email: profile.email,
+                name: profile.name || undefined,
+                provider: 'Github'
               }
             });
           }
         }
         return true;
-      } catch (error) {
-        console.log(error);
+      } catch (e) {
+        console.error("Sign-in error:", e);
         return false;
       }
     }
