@@ -6,12 +6,8 @@ export const GET = async(req:NextRequest)=>{
     const session = await getServerSession(authOptions);
     if(!session?.user.id){
         return NextResponse.json(
-            {
-                message: "Unauthenticated",
-              },
-              {
-                status: 403,
-              },
+            {message: "Unauthenticated", },
+              {status: 403,},
         )
     }
     return NextResponse.json({
