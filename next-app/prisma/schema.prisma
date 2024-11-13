@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Keep your existing models intact
 
 generator client {
   provider = "prisma-client-js"
@@ -12,19 +8,68 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model User{
-  id String @id @default(uuid())
-  email String @unique
-  name String?
-  password String?
-  provider Provider
-  streams Stream[] @relation("user")
-  upvotes Upvote[]
-  addedStreams Stream[] @relation("addedBy")
-  hostedSpaces Space[] @relation("hostedBy")
+
+model User {
+  id            String          @id @default(uuid())  // Keep your existing id field as uuid
+  email         String          @unique
+  name          String?
+  password      String?
+  provider      Provider
+  streams       Stream[]        @relation("user")
+  upvotes       Upvote[]        
+  addedStreams  Stream[]        @relation("addedBy")
+  hostedSpaces  Space[]         @relation("hostedBy")
+  
+  // NextAuth relations added below
+  emailVerified DateTime?       // Email verification timestamp
+  image         String?         // Profile image URL
+  accounts      Account[]       // Accounts linked to this user (GitHub, credentials)
+  sessions      Session[]       // User sessions
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
-model Stream{
+model Account {
+  userId            String
+  type              String          // e.g., "oauth"
+  provider          String          // e.g., "github"
+  providerAccountId String          // Unique GitHub account ID
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Stream {
   id String @id @default(uuid())
   type StreamType
   url String
@@ -36,49 +81,50 @@ model Stream{
   played Boolean @default(false)
   playedTs DateTime?
   createdAt DateTime @default(now())
-  upvotes Upvote[]
+  upvotes Upvote[] 
   userId String
-  user User @relation(fields: [userId],references: [id],name: "user")
+  user User @relation(fields: [userId], references: [id], name: "user")
   currentStream CurrentStream?
   addedBy String
-  addedByUser User @relation("addedBy",fields: [addedBy],references: [id])
+  addedByUser User @relation("addedBy", fields: [addedBy], references: [id])
   spaceId String?
-  space Space? @relation("spaceStreams",fields: [spaceId],references: [id],onDelete: Cascade)
+  space Space? @relation("spaceStreams", fields: [spaceId], references: [id], onDelete: Cascade)
 }
 
-model CurrentStream{
+model CurrentStream {
   id String @id @default(uuid())
   userId String
   streamId String? @unique
-  stream Stream? @relation(fields: [streamId],references: [id])
+  stream Stream? @relation(fields: [streamId], references: [id])
   spaceId String? @unique
-  space Space? @relation(fields: [spaceId],references: [id],onDelete: Cascade)
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 }
-model Upvote{
+
+model Upvote {
   id String @id @default(uuid())
   userId String
   streamId String
-  user User @relation(fields: [userId],references: [id])
-  stream Stream @relation(fields: [streamId],references: [id])
-    @@unique([userId, streamId]) 
+  user User @relation(fields: [userId], references: [id])
+  stream Stream @relation(fields: [streamId], references: [id])
+  @@unique([userId, streamId]) 
 }
 
-model Space{
+model Space {
   id String @id @default(uuid())
   name String
   streams Stream[] @relation("spaceStreams")
   hostId String
-  host User @relation("hostedBy",fields: [hostId],references: [id])
+  host User @relation("hostedBy", fields: [hostId], references: [id])
   isActive Boolean @default(true)
   currentStream CurrentStream?
 }
 
-enum StreamType{
+enum StreamType {
   Spotify
   Youtube
 }
 
-enum Provider{
+enum Provider {
   Github
   Credentials
 }

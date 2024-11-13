@@ -176,7 +176,7 @@ async joinRoom(
         await this.createRoom(spaceId);
         space = this.spaces.get(spaceId);
     }
-    if(!user){
+    if(!user){ 
         await this.addUser(userId, spaceId, ws, token);
         user = this.users.get(userId);
     }else{

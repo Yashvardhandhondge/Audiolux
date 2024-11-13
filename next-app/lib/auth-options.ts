@@ -1,4 +1,5 @@
-import { NextAuthOptions, Session } from "next-auth";
+import { NextAuthOptions,Session } from "next-auth";  
+
 import bcrypt from 'bcryptjs';
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -6,12 +7,17 @@ import GitHubProvider from "next-auth/providers/github";
 import { emailSchema, passwordSchema } from "@/schema/credentials-schema";
 import prisma from "./db";
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 
-export const authOptions: NextAuthOptions = {
+console.log(process.env.GITHUB_CLIENT_SECRET);
+console.log(process.env.GITHUB_CLIENT_ID);
+
+export const authOptions: NextAuthOptions = {  
+  adapter: PrismaAdapter(prisma),
   providers: [
     GitHubProvider({
-      clientId: process.env.GITHUB_ID ?? "",
-      clientSecret: process.env.GITHUB_SECRET ?? ""
+      clientId: process.env.GITHUB_CLIENT_ID ?? "",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? ""
     }),
     CredentialsProvider({
       credentials: {
@@ -108,13 +114,13 @@ export const authOptions: NextAuthOptions = {
     async signIn({ account, profile }) {
       try {
         if (account?.provider === "github" && profile?.email) {
-          const user = await prisma.user.findUnique({
+          let user = await prisma.user.findUnique({
             where: { email: profile.email }
           });
           if (!user) {
             await prisma.user.create({
               data: {
-                email: profile.email,
+                email: profile.email || "",
                 name: profile.name || undefined,
                 provider: 'Github'
               }
