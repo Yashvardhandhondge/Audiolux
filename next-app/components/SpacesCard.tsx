@@ -53,7 +53,7 @@ export default function SpacesCard({
       transition={{ duration: 0.5 }}
       className="p-4 md:p-6"
     >
-      <Card className="w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-[0_10px_20px_rgba(128,90,213,0.5)]">
+      <Card className="w-full max-w-3xl overflow-hidden rounded-2xl border border-blue-700 bg-gray-800 transition-all duration-300 ease-in-out hover:shadow-[0_10px_20px_rgba(128,90,213,0.5)]">
         <CardContent className="p-0">
           <motion.div
             className="relative h-48 w-full sm:h-64 md:h-72 lg:h-80 xl:h-96"

@@ -16,8 +16,8 @@ export default async function Landingpage() {
         <div className='container  h-full px-4 md:px-6'>
             <div className='flex flex-col items-center justify-center mt-6 ml-10 space-y-4 text-center'>
                 <div className='space-y-2'>
-                    <h1 className='text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl/none'>
-                    <span className=''>AudioLux</span> – Where Music is Shaped by You                    </h1>
+                    <h1 className='text-2xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl/none'>
+                    <p className='text-7xl'>AudioLux</p>  Where Music is Shaped by You                    </h1>
                     <p className='mx-auto max-w-[700px] text-gray-400 md:text-xl'>
                     Create or join a room, upvote tracks, skip, or repeat songs. Experience the power of collective choice.
 
@@ -25,7 +25,7 @@ export default async function Landingpage() {
 
                 </div>
                 <div className='space-x-4'>
-                    <Button className='bg-blue-600 text-white hover:bg-blue-700'>
+                    <Button className='bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white hover:bg-blue-700'>
                         <Link
                         href={{
                             pathname:"/auth",
@@ -89,7 +89,7 @@ export default async function Landingpage() {
                >
                 <Button
                 type='submit'
-                className='bg-indigo-600 text-white hover:bg-indigo-700 transition-tranform transform scale-120'
+                className='bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white hover:bg-indigo-700 transition-tranform transform scale-120'
                 >Sign Up</Button>
                </Link>
                 </div>

@@ -130,10 +130,10 @@ export default function HomeView() {
 
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-900 to-black text-gray-200">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 bg-opacity-50 text-gray-200">
     <Appbar />
     <div className="flex flex-grow flex-col items-center px-4 py-8">
-      <div className="h-36 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-900 bg-clip-text text-9xl font-bold text-transparent">
+      <div className="h-36 rounded-xl  bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-9xl font-bold text-transparent">
         Spaces
       </div>
       <Button
@@ -148,8 +148,8 @@ export default function HomeView() {
           {renderSpaces}
         </div>
         <Dialog open={isCraeateSpaceOpen} onOpenChange={setIsCreateSpaceOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 bg-opacity-50">
+          <DialogHeader >
             <DialogTitle className="mb-10 text-center">
               Create new space
             </DialogTitle>
@@ -163,7 +163,7 @@ export default function HomeView() {
               <input
                 className="text-violet11 shadow-violet7 focus:shadow-violet8 mt-5 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="name"
-                defaultValue="Pedro Duarte"
+                defaultValue="Space Name"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setSpaceName(e.target.value);
                 }}
@@ -174,12 +174,13 @@ export default function HomeView() {
             <Button
               variant="outline"
               onClick={() => setIsCreateSpaceOpen(false)}
+              className="bg-red-400"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateSpac}
-              className="bg-purple-600 text-white hover:bg-purple-700"
+              className="bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white hover:bg-blue-700"
             >
               Create Space
             </Button>
